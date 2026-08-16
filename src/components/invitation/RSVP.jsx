@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { weddingData } from "../../data/weddingData";
+import { saveWish } from "../../utils/wishesStorage";
 
 function getRsvpUrl() {
   const { rsvp } = weddingData;
@@ -18,6 +19,7 @@ export function RSVP() {
   const [guestName, setGuestName] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const rsvpUrl = getRsvpUrl();
   const canSubmitWish = Boolean(guestName.trim() && message.trim());
@@ -224,27 +226,21 @@ export function RSVP() {
     if (!canSubmitWish) return;
 
     setStatus("sending");
+    setErrorMessage("");
 
     try {
-      const response = await fetch("/api/wishes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: guestName.trim(),
-          message: message.trim(),
-        }),
+      saveWish({
+        name: guestName.trim(),
+        message: message.trim(),
       });
-
-      if (!response.ok) {
-        throw new Error("Could not send wish.");
-      }
 
       setGuestName("");
       setMessage("");
       setStatus("sent");
-    } catch {
+    } catch (requestError) {
+      setErrorMessage(
+        requestError.message || "حصلت مشكلة في إرسال التهنئة. جرّب مرة تانية."
+      );
       setStatus("error");
     }
   };
@@ -266,6 +262,7 @@ export function RSVP() {
               onChange={(event) => {
                 setGuestName(event.target.value);
                 setStatus("idle");
+                setErrorMessage("");
               }}
               maxLength="60"
               placeholder="Write your name"
@@ -279,6 +276,7 @@ export function RSVP() {
               onChange={(event) => {
                 setMessage(event.target.value);
                 setStatus("idle");
+                setErrorMessage("");
               }}
               maxLength="500"
               rows="4"
@@ -299,7 +297,7 @@ export function RSVP() {
           <p className="wish-form__thanks">Thank you for your beautiful wish.</p>
         )}
         {status === "error" && (
-          <p className="wish-form__error">Something went wrong. Please try again.</p>
+          <p className="wish-form__error">{errorMessage}</p>
         )}
       </form>
 
