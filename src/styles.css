@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&family=Parisienne&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Forum&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&family=Parisienne&display=swap");
 
 :root {
   font-family: "Montserrat", system-ui, sans-serif;
@@ -142,7 +142,7 @@ button:disabled {
 .opening-copy {
   position: absolute;
   z-index: 10;
-  top: 9%;
+  top: 11%;
   left: 7%;
   right: 7%;
   text-align: center;
@@ -160,13 +160,14 @@ button:disabled {
 }
 
 .opening-copy h1 {
-  margin: 0.2rem auto 0.15rem;
-  color: #f7dba1;
-  font-family: "Parisienne", "Cormorant Garamond", serif;
-  font-size: clamp(2.15rem, 5.2vh, 3.55rem);
+  margin: 0.35rem auto 0.2rem;
+  color: #f4d79d;
+  font-family: "Forum", "Trajan Pro", "Times New Roman", serif;
+  font-size: clamp(2rem, 5.05vh, 3.32rem);
   font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0;
+  line-height: 1.08;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -934,7 +935,7 @@ footer p {
 
 @media (max-width: 480px) {
   .opening-copy {
-    top: 9.4%;
+    top: 11.4%;
   }
 
   .opening-copy p {
@@ -942,7 +943,7 @@ footer p {
   }
 
   .opening-copy h1 {
-    font-size: 2.2rem;
+    font-size: 1.82rem;
   }
 
   .butterfly--hero {
@@ -983,7 +984,7 @@ footer p {
   }
 
   .opening-copy h1 {
-    font-size: clamp(1.9rem, 7.4vh, 2.75rem);
+    font-size: clamp(1.65rem, 6.4vh, 2.5rem);
   }
 
   .enter-prompt {
