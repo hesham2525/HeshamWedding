@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { weddingData } from "../../data/weddingData";
 
 const butterflyCount = 56;
-const bloomCount = 96;
+const bloomCount = 64;
 
 function createMapBurstItem(index, total, type) {
   const side = index % 2 === 0 ? -1 : 1;
@@ -34,7 +34,6 @@ function createMapBurstItem(index, total, type) {
 export function VenueMap() {
   const sectionRef = useRef(null);
   const burstRef = useRef(null);
-  const hasPlayedRef = useRef(false);
   const butterflies = useMemo(
     () =>
       Array.from({ length: butterflyCount }, (_, index) =>
@@ -59,10 +58,9 @@ export function VenueMap() {
 
     if (reducedMotion) return undefined;
 
-    const playBurst = () => {
-      if (hasPlayedRef.current || !burstRef.current) return;
-      hasPlayedRef.current = true;
+    let ctx;
 
+    const playBurst = () => {
       const butterflyElements = gsap.utils.toArray(
         ".venue-burst__butterfly",
         burstRef.current
@@ -72,102 +70,108 @@ export function VenueMap() {
         burstRef.current
       );
 
-      butterflyElements.forEach((element, index) => {
-        const x = Number(element.dataset.x);
-        const y = Number(element.dataset.y);
-        const startX = Number(element.dataset.startX);
-        const startY = Number(element.dataset.startY);
-        const drift = Number(element.dataset.drift);
-        const rotate = Number(element.dataset.rotate);
-        const scale = Number(element.dataset.scale);
-        const duration = Number(element.dataset.duration);
-        const delay = Number(element.dataset.delay);
-        const visibleOpacity = index % 3 === 0 ? 0.74 : 0.94;
+      ctx = gsap.context(() => {
+        butterflyElements.forEach((element, index) => {
+          const x = Number(element.dataset.x);
+          const y = Number(element.dataset.y);
+          const startX = Number(element.dataset.startX);
+          const startY = Number(element.dataset.startY);
+          const drift = Number(element.dataset.drift);
+          const rotate = Number(element.dataset.rotate);
+          const scale = Number(element.dataset.scale);
+          const duration = Number(element.dataset.duration);
+          const delay = Number(element.dataset.delay);
+          const visibleOpacity = index % 3 === 0 ? 0.74 : 0.94;
 
-        gsap.fromTo(
-          element,
-          {
-            opacity: 0,
-            xPercent: -50,
-            yPercent: -50,
-            x: startX,
-            y: startY,
-            rotate: 0,
-            scale: 0.12,
-          },
-          {
-            delay,
-            keyframes: [
-              {
-                opacity: visibleOpacity,
-                x: x * 0.72,
-                y: y * 0.72,
-                rotate: rotate * 0.55,
-                scale,
-                duration: duration * 0.72,
-                ease: "power2.out",
-              },
-              {
-                opacity: 0,
-                x: x + drift,
-                y: y - 210,
-                rotate: rotate + (drift > 0 ? 42 : -42),
-                scale: scale * 0.84,
-                duration: 2.4,
-                ease: "sine.in",
-              },
-            ],
-          }
-        );
-      });
+          gsap.fromTo(
+            element,
+            {
+              opacity: 0,
+              xPercent: -50,
+              yPercent: -50,
+              x: startX,
+              y: startY,
+              rotate: 0,
+              scale: 0.12,
+            },
+            {
+              delay,
+              repeat: -1,
+              repeatDelay: 0.9 + (index % 7) * 0.2,
+              keyframes: [
+                {
+                  opacity: visibleOpacity,
+                  x: x * 0.72,
+                  y: y * 0.72,
+                  rotate: rotate * 0.55,
+                  scale,
+                  duration: duration * 0.72,
+                  ease: "power2.out",
+                },
+                {
+                  opacity: 0.08,
+                  x: x + drift,
+                  y: y - 210,
+                  rotate: rotate + (drift > 0 ? 42 : -42),
+                  scale: scale * 0.84,
+                  duration: 2.4,
+                  ease: "sine.in",
+                },
+              ],
+            }
+          );
+        });
 
-      bloomElements.forEach((element) => {
-        const x = Number(element.dataset.x);
-        const y = Number(element.dataset.y);
-        const startX = Number(element.dataset.startX);
-        const startY = Number(element.dataset.startY);
-        const drift = Number(element.dataset.drift);
-        const rotate = Number(element.dataset.rotate);
-        const scale = Number(element.dataset.scale);
-        const duration = Number(element.dataset.duration);
-        const delay = Number(element.dataset.delay);
-        const visibleOpacity = element.dataset.kind === "leaf" ? 0.78 : 0.88;
+        bloomElements.forEach((element, index) => {
+          const x = Number(element.dataset.x);
+          const y = Number(element.dataset.y);
+          const startX = Number(element.dataset.startX);
+          const startY = Number(element.dataset.startY);
+          const drift = Number(element.dataset.drift);
+          const rotate = Number(element.dataset.rotate);
+          const scale = Number(element.dataset.scale);
+          const duration = Number(element.dataset.duration);
+          const delay = Number(element.dataset.delay);
+          const visibleOpacity = element.dataset.kind === "leaf" ? 0.78 : 0.88;
 
-        gsap.fromTo(
-          element,
-          {
-            opacity: 0,
-            xPercent: -50,
-            yPercent: -50,
-            x: startX,
-            y: startY,
-            rotate: 0,
-            scale: 0.14,
-          },
-          {
-            delay,
-            keyframes: [
-              {
-                opacity: visibleOpacity,
-                x: x * 0.72,
-                y: y * 0.72,
-                rotate: rotate * 0.58,
-                scale,
-                duration: duration * 0.7,
-                ease: "power1.out",
-              },
-              {
-                opacity: 0,
-                x: x + drift,
-                y: y - 175,
-                rotate: rotate + (drift > 0 ? 68 : -68),
-                scale: scale * 0.8,
-                duration: 2.05,
-                ease: "sine.in",
-              },
-            ],
-          }
-        );
+          gsap.fromTo(
+            element,
+            {
+              opacity: 0,
+              xPercent: -50,
+              yPercent: -50,
+              x: startX,
+              y: startY,
+              rotate: 0,
+              scale: 0.14,
+            },
+            {
+              delay,
+              repeat: -1,
+              repeatDelay: 0.75 + (index % 8) * 0.18,
+              keyframes: [
+                {
+                  opacity: visibleOpacity,
+                  x: x * 0.72,
+                  y: y * 0.72,
+                  rotate: rotate * 0.58,
+                  scale,
+                  duration: duration * 0.7,
+                  ease: "power1.out",
+                },
+                {
+                  opacity: 0.08,
+                  x: x + drift,
+                  y: y - 175,
+                  rotate: rotate + (drift > 0 ? 68 : -68),
+                  scale: scale * 0.8,
+                  duration: 2.05,
+                  ease: "sine.in",
+                },
+              ],
+            }
+          );
+        });
       });
     };
 
@@ -182,7 +186,10 @@ export function VenueMap() {
 
     observer.observe(sectionRef.current);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      ctx?.revert();
+    };
   }, []);
 
   return (
