@@ -540,6 +540,7 @@ footer {
 
 .intro-section {
   position: relative;
+  scroll-margin-top: 1.125rem;
 }
 
 .butterfly {
@@ -649,6 +650,7 @@ footer {
 }
 
 .details {
+  scroll-margin-top: 1.125rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
@@ -732,7 +734,7 @@ footer {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  padding-top: 2rem;
+  padding-top: 5rem;
 }
 
 .venue-burst {

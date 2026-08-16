@@ -54,6 +54,7 @@ export function WeddingInvitation({ hasMusic, musicEnabled, onToggleMusic }) {
 
       <div className="paper">
         <section
+          id="welcome"
           className="content-section intro-section reveal"
           aria-labelledby="welcome-title"
         >
@@ -70,12 +71,6 @@ export function WeddingInvitation({ hasMusic, musicEnabled, onToggleMusic }) {
         </section>
 
         <WeddingDetails />
-
-        <section className="content-section story reveal" aria-labelledby="story-title">
-          <span className="section-kicker">OUR CELEBRATION</span>
-          <h3 id="story-title">One door. One promise. One beginning.</h3>
-          <p>{weddingData.celebration}</p>
-        </section>
 
         <VenueMap />
         <RSVP />
