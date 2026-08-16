@@ -10,7 +10,7 @@ const openingAssets = [
   weddingData.assets.butterfly,
 ];
 
-const butterflyBurst = Array.from({ length: 72 }, (_, index) => {
+const butterflyBurst = Array.from({ length: 112 }, (_, index) => {
   const side = index % 2 === 0 ? -1 : 1;
   const spread = 45 + Math.random() * 270;
 
@@ -25,7 +25,7 @@ const butterflyBurst = Array.from({ length: 72 }, (_, index) => {
   };
 });
 
-const petalBurst = Array.from({ length: 54 }, (_, index) => {
+const petalBurst = Array.from({ length: 88 }, (_, index) => {
   const side = index % 2 === 0 ? -1 : 1;
 
   return {
