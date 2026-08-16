@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { clearWishes, getWishes } from "../../utils/wishesStorage";
 
 const tokenStorageKey = "wedding-wishes-admin-token";
-const localAdminToken = "wedding";
 
 export function WishesAdmin() {
   const [token, setToken] = useState(
@@ -13,7 +11,7 @@ export function WishesAdmin() {
   const [status, setStatus] = useState(token ? "loading" : "locked");
   const [error, setError] = useState("");
 
-  const loadWishes = (nextToken = token) => {
+  const loadWishes = async (nextToken = token) => {
     if (!nextToken) {
       setStatus("locked");
       return;
@@ -23,11 +21,18 @@ export function WishesAdmin() {
     setError("");
 
     try {
-      if (nextToken !== localAdminToken) {
+      const response = await fetch("/api/wishes", {
+        headers: {
+          Authorization: `Bearer ${nextToken}`,
+        },
+      });
+
+      if (!response.ok) {
         throw new Error("The admin token is not valid.");
       }
 
-      setWishes(getWishes());
+      const data = await response.json();
+      setWishes(Array.isArray(data.wishes) ? data.wishes : []);
       setStatus("ready");
     } catch (requestError) {
       setWishes([]);
@@ -57,17 +62,12 @@ export function WishesAdmin() {
     window.sessionStorage.removeItem(tokenStorageKey);
   };
 
-  const handleClearWishes = () => {
-    clearWishes();
-    setWishes([]);
-  };
-
   return (
     <main className="admin-page">
       <section className="admin-panel" aria-labelledby="admin-title">
         <span className="section-kicker">PRIVATE</span>
         <h1 id="admin-title">Wedding Wishes</h1>
-        <p>Messages saved in this browser are shown here.</p>
+        <p>Only someone with the admin token can read these messages.</p>
 
         {status === "locked" ? (
           <form className="admin-token-form" onSubmit={handleUnlock}>
@@ -77,7 +77,7 @@ export function WishesAdmin() {
                 type="password"
                 value={tokenInput}
                 onChange={(event) => setTokenInput(event.target.value)}
-                placeholder="Enter wedding"
+                placeholder="Enter your private token"
               />
             </label>
             <button className="rsvp-button" type="submit" disabled={!tokenInput.trim()}>
@@ -97,13 +97,6 @@ export function WishesAdmin() {
                 onClick={handleLock}
               >
                 LOCK
-              </button>
-              <button
-                className="rsvp-button rsvp-button--secondary"
-                type="button"
-                onClick={handleClearWishes}
-              >
-                CLEAR
               </button>
             </div>
 

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { weddingData } from "../../data/weddingData";
-import { saveWish } from "../../utils/wishesStorage";
 
 function getRsvpUrl() {
   const { rsvp } = weddingData;
@@ -229,10 +228,29 @@ export function RSVP() {
     setErrorMessage("");
 
     try {
-      saveWish({
-        name: guestName.trim(),
-        message: message.trim(),
+      const response = await fetch("/api/wishes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: guestName.trim(),
+          message: message.trim(),
+        }),
       });
+
+      if (!response.ok) {
+        let requestError = "حصلت مشكلة في إرسال التهنئة. جرّب مرة تانية.";
+
+        try {
+          const data = await response.json();
+          if (data?.error) requestError = data.error;
+        } catch {
+          // Keep the friendly fallback when the server does not return JSON.
+        }
+
+        throw new Error(requestError);
+      }
 
       setGuestName("");
       setMessage("");
