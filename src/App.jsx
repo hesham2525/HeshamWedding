@@ -11,6 +11,7 @@ function App() {
   const doorAudioRef = useRef(null);
   const audioContextRef = useRef(null);
   const soundTimersRef = useRef([]);
+  const musicStartTimerRef = useRef(null);
   const hasMusic = Boolean(
     weddingData.assets.music.enabled && weddingData.assets.music.src
   );
@@ -39,13 +40,6 @@ function App() {
 
       soundTimersRef.current.push(timer);
     }
-  };
-
-  const primeMusicSilently = () => {
-    if (!audioRef.current || !hasMusic) return;
-
-    audioRef.current.volume = 0;
-    audioRef.current.play().catch(() => {});
   };
 
   const unlockAudioSilently = (audio) => {
@@ -134,6 +128,17 @@ function App() {
       .catch(() => setMusicEnabled(false));
   };
 
+  const playMusicAfterEntry = () => {
+    if (musicStartTimerRef.current) {
+      window.clearTimeout(musicStartTimerRef.current);
+    }
+
+    musicStartTimerRef.current = window.setTimeout(() => {
+      playMusic();
+      musicStartTimerRef.current = null;
+    }, 450);
+  };
+
   const toggleMusic = () => {
     if (!audioRef.current || !hasMusic) return;
 
@@ -151,7 +156,16 @@ function App() {
     playMusic();
   }, [hasMusic]);
 
-  useEffect(() => clearSoundTimers, []);
+  useEffect(
+    () => () => {
+      clearSoundTimers();
+
+      if (musicStartTimerRef.current) {
+        window.clearTimeout(musicStartTimerRef.current);
+      }
+    },
+    []
+  );
 
   return (
     <main>
@@ -183,13 +197,13 @@ function App() {
           onKnock={() => {
             clearSoundTimers();
             unlockAudioSilently(doorAudioRef.current);
+            unlockAudioSilently(audioRef.current);
             playSound(knockAudioRef.current, 1, { duration: 0.9 });
-            primeMusicSilently();
           }}
           onDoorOpenStart={playDoorOpen}
           onComplete={() => {
-            playMusic();
             setEntered(true);
+            playMusicAfterEntry();
           }}
         />
       )}
