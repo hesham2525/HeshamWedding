@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { WishesAdmin } from "./components/admin/WishesAdmin";
 import { DoorScene } from "./components/door/DoorScene";
 import { WeddingInvitation } from "./components/invitation/WeddingInvitation";
 import { weddingData } from "./data/weddingData";
 
 function App() {
+  const [hash, setHash] = useState(() => window.location.hash);
   const [entered, setEntered] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const audioRef = useRef(null);
@@ -17,6 +19,14 @@ function App() {
   );
   const hasKnockSound = Boolean(weddingData.assets.sounds.knock);
   const hasDoorSound = Boolean(weddingData.assets.sounds.doorOpen);
+
+  useEffect(() => {
+    const handleHashChange = () => setHash(window.location.hash);
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const clearSoundTimers = () => {
     soundTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -166,6 +176,10 @@ function App() {
     },
     []
   );
+
+  if (hash === "#admin-wishes") {
+    return <WishesAdmin />;
+  }
 
   return (
     <main>

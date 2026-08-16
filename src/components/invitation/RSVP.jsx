@@ -1,26 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { gsap } from "gsap";
+import { useEffect, useRef, useState } from "react";
 import { weddingData } from "../../data/weddingData";
-
-const butterfliesCount = 48;
-const greeneryCount = 92;
-
-function createBurstItem(index, total, type) {
-  const side = index % 2 === 0 ? -1 : 1;
-  const progress = index / Math.max(total - 1, 1);
-
-  return {
-    id: `${type}-${index}`,
-    delay: Math.random() * 0.82 + progress * 0.12,
-    duration: 2.4 + Math.random() * 1.8,
-    rotate: side * (80 + Math.random() * 260),
-    scale: type === "butterfly" ? 0.48 + Math.random() * 0.95 : 0.6 + Math.random() * 1.2,
-    x: side * (45 + Math.random() * 460) + (Math.random() - 0.5) * 180,
-    y: -180 - Math.random() * 620,
-    drift: (Math.random() - 0.5) * 180,
-    kind: index % 5 === 0 ? "leaf" : "petal",
-  };
-}
 
 function getRsvpUrl() {
   const { rsvp } = weddingData;
@@ -35,209 +14,305 @@ function getRsvpUrl() {
 }
 
 export function RSVP() {
-  const sectionRef = useRef(null);
-  const burstRef = useRef(null);
-  const hasPlayedRef = useRef(false);
-  const butterflies = useMemo(
-    () =>
-      Array.from({ length: butterfliesCount }, (_, index) =>
-        createBurstItem(index, butterfliesCount, "butterfly")
-      ),
-    []
-  );
-  const greenery = useMemo(
-    () =>
-      Array.from({ length: greeneryCount }, (_, index) =>
-        createBurstItem(index, greeneryCount, "greenery")
-      ),
-    []
-  );
+  const canvasRef = useRef(null);
+  const [guestName, setGuestName] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("idle");
+
+  const rsvpUrl = getRsvpUrl();
+  const canSubmitWish = Boolean(guestName.trim() && message.trim());
 
   useEffect(() => {
-    if (!sectionRef.current || !burstRef.current) return undefined;
-
+    const canvas = canvasRef.current;
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    if (reducedMotion) return undefined;
+    if (!canvas || reducedMotion) return undefined;
 
-    const playBurst = () => {
-      if (hasPlayedRef.current || !burstRef.current) return;
-      hasPlayedRef.current = true;
+    const context = canvas.getContext("2d");
+    const colors = [
+      "#f4d49a",
+      "#fff0c6",
+      "#e8a69a",
+      "#cdb6e8",
+      "#9ed8ff",
+      "#bfe089",
+      "#ffb7d5",
+      "#f9a857",
+    ];
+    const rockets = [];
+    const sparks = [];
+    let animationFrame = 0;
+    let lastLaunch = 0;
+    let launchIndex = 0;
+    let width = 0;
+    let height = 0;
 
-      const butterflyElements = gsap.utils.toArray(
-        ".rsvp-burst__butterfly",
-        burstRef.current
-      );
-      const greeneryElements = gsap.utils.toArray(
-        ".rsvp-burst__greenery",
-        burstRef.current
-      );
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
 
-      butterflyElements.forEach((element, index) => {
-        const x = Number(element.dataset.x);
-        const y = Number(element.dataset.y);
-        const drift = Number(element.dataset.drift);
-        const rotate = Number(element.dataset.rotate);
-        const scale = Number(element.dataset.scale);
-        const duration = Number(element.dataset.duration);
-        const delay = Number(element.dataset.delay);
-        const visibleOpacity = index % 3 === 0 ? 0.72 : 0.92;
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
 
-        gsap.fromTo(
-          element,
-          {
-            opacity: 0,
-            xPercent: -50,
-            yPercent: -50,
-            x: 0,
-            y: 0,
-            rotate: 0,
-            scale: 0.1,
-          },
-          {
-            delay,
-            keyframes: [
-              {
-                opacity: visibleOpacity,
-                x: x * 0.78,
-                y: y * 0.78,
-                rotate: rotate * 0.62,
-                scale,
-                duration: duration * 0.66,
-                ease: "power2.out",
-              },
-              {
-                opacity: 0,
-                x: x + drift,
-                y: y - 190,
-                rotate: rotate + (drift > 0 ? 42 : -42),
-                scale: scale * 0.78,
-                duration: 1.25,
-                ease: "sine.in",
-              },
-            ],
-          }
-        );
-      });
+    const randomBetween = (min, max) => min + Math.random() * (max - min);
 
-      greeneryElements.forEach((element) => {
-        const x = Number(element.dataset.x);
-        const y = Number(element.dataset.y);
-        const drift = Number(element.dataset.drift);
-        const rotate = Number(element.dataset.rotate);
-        const scale = Number(element.dataset.scale);
-        const duration = Number(element.dataset.duration);
-        const delay = Number(element.dataset.delay);
-        const visibleOpacity = element.dataset.kind === "leaf" ? 0.78 : 0.86;
+    const launchRocket = () => {
+      const launchPattern = [
+        { start: 0.34, target: 0.18 },
+        { start: 0.66, target: 0.82 },
+        { start: 0.5, target: 0.5 },
+        { start: 0.4, target: 0.36 },
+        { start: 0.6, target: 0.64 },
+        { start: 0.46, target: 0.26 },
+        { start: 0.54, target: 0.74 },
+      ];
+      const pattern = launchPattern[launchIndex % launchPattern.length];
+      launchIndex += 1;
 
-        gsap.fromTo(
-          element,
-          {
-            opacity: 0,
-            xPercent: -50,
-            yPercent: -50,
-            x: 0,
-            y: 0,
-            rotate: 0,
-            scale: 0.15,
-          },
-          {
-            delay,
-            keyframes: [
-              {
-                opacity: visibleOpacity,
-                x: x * 0.74,
-                y: y * 0.74,
-                rotate: rotate * 0.58,
-                scale,
-                duration: duration * 0.62,
-                ease: "power1.out",
-              },
-              {
-                opacity: 0,
-                x: x + drift,
-                y: y - 150,
-                rotate: rotate + (drift > 0 ? 70 : -70),
-                scale: scale * 0.72,
-                duration: 1.05,
-                ease: "sine.in",
-              },
-            ],
-          }
-        );
+      const startX = width * pattern.start + randomBetween(-30, 30);
+      const targetX = width * pattern.target + randomBetween(-48, 48);
+      const targetY = randomBetween(height * 0.08, height * 0.44);
+
+      rockets.push({
+        x: startX,
+        y: height + 20,
+        targetX,
+        targetY,
+        vx: (targetX - startX) * 0.006,
+        vy: randomBetween(-5.9, -4.8),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 1,
       });
     };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        playBurst();
-        observer.disconnect();
-      },
-      { threshold: 0.34 }
-    );
+    const explode = (rocket) => {
+      const count = Math.floor(randomBetween(56, 84));
 
-    observer.observe(sectionRef.current);
+      for (let index = 0; index < count; index += 1) {
+        const angle = (Math.PI * 2 * index) / count + randomBetween(-0.05, 0.05);
+        const speed = randomBetween(1.25, 4.15);
+        const color =
+          index % 9 === 0
+            ? "#fff8df"
+            : colors[Math.floor(Math.random() * colors.length)];
 
-    return () => observer.disconnect();
+        sparks.push({
+          x: rocket.x,
+          y: rocket.y,
+          previousX: rocket.x,
+          previousY: rocket.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          gravity: randomBetween(0.018, 0.044),
+          friction: randomBetween(0.978, 0.989),
+          alpha: randomBetween(0.62, 0.94),
+          decay: randomBetween(0.0048, 0.009),
+          size: randomBetween(1, 2.35),
+          color,
+        });
+      }
+    };
+
+    const drawGlow = (x, y, radius, color, alpha) => {
+      const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.32, color);
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+      context.save();
+      context.globalAlpha = alpha;
+      context.globalCompositeOperation = "lighter";
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    };
+
+    const tick = (time) => {
+      context.globalCompositeOperation = "source-over";
+      context.fillStyle = "rgba(60, 41, 36, 0.28)";
+      context.fillRect(0, 0, width, height);
+
+      if (time - lastLaunch > randomBetween(620, 1100)) {
+        launchRocket();
+        if (Math.random() > 0.52) {
+          launchRocket();
+        }
+        lastLaunch = time;
+      }
+
+      for (let index = rockets.length - 1; index >= 0; index -= 1) {
+        const rocket = rockets[index];
+
+        rocket.x += rocket.vx;
+        rocket.y += rocket.vy;
+        rocket.vy += 0.018;
+        rocket.life -= 0.004;
+
+        context.save();
+        context.globalCompositeOperation = "lighter";
+        context.strokeStyle = rocket.color;
+        context.globalAlpha = 0.58;
+        context.lineWidth = 1.25;
+        context.beginPath();
+        context.moveTo(rocket.x, rocket.y + 14);
+        context.lineTo(rocket.x, rocket.y);
+        context.stroke();
+        context.restore();
+
+        drawGlow(rocket.x, rocket.y, 12, rocket.color, 0.24);
+
+        if (rocket.y <= rocket.targetY || rocket.life <= 0) {
+          explode(rocket);
+          rockets.splice(index, 1);
+        }
+      }
+
+      for (let index = sparks.length - 1; index >= 0; index -= 1) {
+        const spark = sparks[index];
+
+        spark.previousX = spark.x;
+        spark.previousY = spark.y;
+        spark.vx *= spark.friction;
+        spark.vy = spark.vy * spark.friction + spark.gravity;
+        spark.x += spark.vx;
+        spark.y += spark.vy;
+        spark.alpha -= spark.decay;
+
+        context.save();
+        context.globalCompositeOperation = "lighter";
+        context.globalAlpha = Math.max(spark.alpha, 0);
+        context.strokeStyle = spark.color;
+        context.lineWidth = spark.size;
+        context.beginPath();
+        context.moveTo(spark.previousX, spark.previousY);
+        context.lineTo(spark.x, spark.y);
+        context.stroke();
+        context.restore();
+
+        if (spark.alpha <= 0) {
+          sparks.splice(index, 1);
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(tick);
+    };
+
+    resize();
+    launchRocket();
+    window.addEventListener("resize", resize);
+    animationFrame = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
   if (!weddingData.rsvp.enabled) return null;
 
-  const rsvpUrl = getRsvpUrl();
+  const handleSubmitWish = async (event) => {
+    event.preventDefault();
+
+    if (!canSubmitWish) return;
+
+    setStatus("sending");
+
+    try {
+      const response = await fetch("/api/wishes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: guestName.trim(),
+          message: message.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not send wish.");
+      }
+
+      setGuestName("");
+      setMessage("");
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
+  };
 
   return (
-    <section
-      className="content-section rsvp"
-      aria-labelledby="rsvp-title"
-      ref={sectionRef}
-    >
-      <div className="rsvp-burst" ref={burstRef} aria-hidden="true">
-        {butterflies.map((butterfly) => (
-          <img
-            className="rsvp-burst__butterfly"
-            key={butterfly.id}
-            src={weddingData.assets.butterfly}
-            alt=""
-            draggable="false"
-            data-x={butterfly.x}
-            data-y={butterfly.y}
-            data-drift={butterfly.drift}
-            data-rotate={butterfly.rotate}
-            data-scale={butterfly.scale}
-            data-duration={butterfly.duration}
-            data-delay={butterfly.delay}
-          />
-        ))}
-        {greenery.map((item) => (
-          <span
-            className={`rsvp-burst__greenery rsvp-burst__greenery--${item.kind}`}
-            key={item.id}
-            data-kind={item.kind}
-            data-x={item.x}
-            data-y={item.y}
-            data-drift={item.drift}
-            data-rotate={item.rotate}
-            data-scale={item.scale}
-            data-duration={item.duration}
-            data-delay={item.delay}
-          />
-        ))}
-      </div>
-      <span className="section-kicker">RSVP</span>
-      <h3 id="rsvp-title">Will you celebrate with us?</h3>
-      <p>We would love to know if you can join us for this evening.</p>
+    <section className="content-section rsvp" aria-labelledby="rsvp-title">
+      <canvas className="wish-fireworks" ref={canvasRef} aria-hidden="true" />
+      <span className="section-kicker">WISHES</span>
+      <h3 id="rsvp-title">Send us your warm wishes</h3>
+      <p>Leave a private note for the bride and groom.</p>
+
+      <form className="wish-form" onSubmit={handleSubmitWish}>
+        <div className="wish-form__fields">
+          <label>
+            <span>Your name</span>
+            <input
+              type="text"
+              value={guestName}
+              onChange={(event) => {
+                setGuestName(event.target.value);
+                setStatus("idle");
+              }}
+              maxLength="60"
+              placeholder="Write your name"
+            />
+          </label>
+
+          <label>
+            <span>Your wish</span>
+            <textarea
+              value={message}
+              onChange={(event) => {
+                setMessage(event.target.value);
+                setStatus("idle");
+              }}
+              maxLength="500"
+              rows="4"
+              placeholder="Write a beautiful message..."
+            />
+          </label>
+        </div>
+
+        <button
+          className="rsvp-button"
+          type="submit"
+          disabled={!canSubmitWish || status === "sending"}
+        >
+          {status === "sending" ? "SENDING..." : "SEND YOUR WISH"}
+        </button>
+
+        {status === "sent" && (
+          <p className="wish-form__thanks">Thank you for your beautiful wish.</p>
+        )}
+        {status === "error" && (
+          <p className="wish-form__error">Something went wrong. Please try again.</p>
+        )}
+      </form>
+
       {rsvpUrl ? (
-        <a className="rsvp-button" href={rsvpUrl} target="_blank" rel="noreferrer">
+        <a
+          className="rsvp-button rsvp-button--secondary"
+          href={rsvpUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
           YES, I'LL BE THERE
         </a>
-      ) : (
-        <button className="rsvp-button" type="button" disabled>
-          RSVP COMING SOON
-        </button>
-      )}
+      ) : null}
     </section>
   );
 }
