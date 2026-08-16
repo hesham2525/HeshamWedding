@@ -84,8 +84,8 @@ export function RSVP() {
         y: height + 20,
         targetX,
         targetY,
-        vx: (targetX - startX) * 0.006,
-        vy: randomBetween(-5.9, -4.8),
+        vx: (targetX - startX) * 0.0052,
+        vy: randomBetween(-5.25, -4.25),
         color: colors[Math.floor(Math.random() * colors.length)],
         life: 1,
       });
@@ -96,7 +96,7 @@ export function RSVP() {
 
       for (let index = 0; index < count; index += 1) {
         const angle = (Math.PI * 2 * index) / count + randomBetween(-0.05, 0.05);
-        const speed = randomBetween(1.25, 4.15);
+        const speed = randomBetween(1.05, 3.6);
         const color =
           index % 9 === 0
             ? "#fff8df"
@@ -109,7 +109,7 @@ export function RSVP() {
           previousY: rocket.y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
-          gravity: randomBetween(0.018, 0.044),
+          gravity: randomBetween(0.015, 0.038),
           friction: randomBetween(0.978, 0.989),
           alpha: randomBetween(0.62, 0.94),
           decay: randomBetween(0.0048, 0.009),
@@ -153,7 +153,7 @@ export function RSVP() {
 
         rocket.x += rocket.vx;
         rocket.y += rocket.vy;
-        rocket.vy += 0.018;
+        rocket.vy += 0.015;
         rocket.life -= 0.004;
 
         context.save();
