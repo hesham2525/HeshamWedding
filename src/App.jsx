@@ -127,6 +127,14 @@ function App() {
     playHeavyDoorEffect();
   };
 
+  const stopMusic = () => {
+    if (!audioRef.current) return;
+
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    setMusicEnabled(false);
+  };
+
   const playMusic = () => {
     if (!audioRef.current || !hasMusic) return Promise.resolve();
 
@@ -210,8 +218,8 @@ function App() {
         <DoorScene
           onKnock={() => {
             clearSoundTimers();
+            stopMusic();
             unlockAudioSilently(doorAudioRef.current);
-            unlockAudioSilently(audioRef.current);
             playSound(knockAudioRef.current, 1, { duration: 0.9 });
           }}
           onDoorOpenStart={playDoorOpen}
